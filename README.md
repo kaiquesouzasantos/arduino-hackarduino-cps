@@ -1,7 +1,7 @@
-<h1 align="center">ROBOCODE-CPS</h1>
+<h1 align="center">HACKARDUINO-CPS</h1>
 
 <p align="center">
-  <img src="robotica_cps.png">
+  <img src="hackarduino.png">
 </p>
 
 #
