@@ -7,6 +7,7 @@ const int POLEGAR = 2,
     MEDIO = 4,
     ANELAR = 5,
     MINIMO = 6;
+
 Servo polegar, indicador, medio, anelar, minimo;
 
 Servo mao[] = {
@@ -16,6 +17,7 @@ Servo mao[] = {
     anelar,
     minimo
 };
+
 int portasMao[] = {
     POLEGAR,
     INDICADOR,
@@ -27,13 +29,16 @@ int portasMao[] = {
 /* VARIAVEIS SENSORIAIS */
 
 const int SENSOR_UNITARIO = A0;
+
 const int TRIGGER_ULTRASONICO = 8,
     ECHO_ULTRASONICO = 9;
+
 const int SENSOR_POLEGAR = A1,
     SENSOR_INDICADOR = A2,
     SENSOR_MEDIO = A3,
     SENSOR_ANELAR = A4,
     SENSOR_MINIMO = A5;
+
 int portasSensor[] = {
     SENSOR_POLEGAR,
     SENSOR_INDICADOR,
@@ -57,7 +62,8 @@ void setup() {
     setupMao();
 
     escreve("################# Programa Inicializado #################");
-    escreve("Digite o modo de receptacao de informacao: ");
+    escreve("Selecao de Modalidade de Captacao de Informacao");
+    escreve("- ultrasonico\n- potenciometro\n- potenciometros\n- flexivel\n- terminal\nDigite a opcao desejada: ");
 }
 
 void setupMao() {
@@ -119,11 +125,10 @@ void entradaUltrasonica() {
     verificaSetup("ultrasonico");
 
     while (true) {
+        int angulo = getAngulo(getLeituraUltrasonica(), 1, 30);
+
         for (int dedo = 0; dedo < LIMITE_DEDOS; dedo++) {
-            setPosicaoDedo(
-                portasMao[dedo],
-                getAngulo(getLeituraUltrasonica(), 1, 30)
-            );
+            setPosicaoDedo(dedo, angulo);
         }
     }
 }
@@ -134,7 +139,7 @@ void entradaMultiplaPotenciometro() {
     while (true) {
         for (int sensor = 0; sensor < LIMITE_DEDOS; sensor++) {
             setPosicaoDedo(
-                portasMao[sensor],
+                sensor,
                 getAngulo(getLeitura(portasSensor[sensor]), 1023)
             );
         }
@@ -147,7 +152,7 @@ void entradaMultiplaFlexivel() {
     while (true) {
         for (int sensor = 0; sensor < LIMITE_DEDOS; sensor++) {
             setPosicaoDedo(
-                portasMao[sensor],
+                sensor,
                 getAngulo(getLeitura(portasSensor[sensor]), 384, 783)
             );
         }
@@ -168,7 +173,7 @@ void entradaPotenciometro() {
 }
 
 void entradaTerminal() {
-    escreve("Digite os angulos dos dedos sequencialmente:");
+    escreve("Digite os angulos dos dedos sequencialmente, no seguinte formato:\nxxx xxx xxx xxx xxx");
 
     while (true) {
         while (Serial.available() > 0) {
@@ -181,7 +186,7 @@ void entradaTerminal() {
                     continue;
                 }
 
-                setPosicaoDedo(portasMao[valor], angulo);
+                setPosicaoDedo(valor, angulo);
             }
         }
     }
@@ -194,13 +199,15 @@ void verificaSetup(String tipo) {
         return;
     }
 
-    if (tipo = "multiplo") {
+    if (tipo == "multiplo") {
         setupSensor();
     } else if (tipo == "unitario") {
         setupUnitario();
     } else if (tipo == "ultrasonico") {
         setupUltrasonico();
     }
+
+    escreve("OK");
 }
 
 /* LEITURA */
@@ -210,16 +217,18 @@ int getLeitura(int portaSensorial) {
 }
 
 double getLeituraUltrasonica() {
+    digitalWrite(TRIGGER_ULTRASONICO, LOW);
+    delayMicroseconds(2);
     digitalWrite(TRIGGER_ULTRASONICO, HIGH);
     delayMicroseconds(10);
     digitalWrite(TRIGGER_ULTRASONICO, LOW);
 
-    return (pulseIn(ECHO_ULTRASONICO, HIGH) / 2) / 29.1;
+    return pulseIn(ECHO_ULTRASONICO, HIGH) / 58.2;
 }
 
 /* CONVERSAO */
 
-int * getValores(String entrada) {
+int* getValores(String entrada) {
     int * valores = new int[LIMITE_DEDOS];
     int index = 0;
 
